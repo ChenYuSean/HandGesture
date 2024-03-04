@@ -4,6 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+using System.Linq;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -52,7 +53,7 @@ namespace App
         {
             // Load DL Model
             model = ModelLoader.Load(modelAsset);
-            modelWorker = WorkerFactory.CreateWorker(model, WorkerFactory.Device.GPU);
+            modelWorker = WorkerFactory.CreateWorker(model, WorkerFactory.Device.CPU);
         }
 
 
@@ -184,16 +185,17 @@ namespace App
                     continue;
                 }
 
+                var idx = 0;
                 float[] input_features = new float[C];
-                input_features[hand_idx] = result.handedness[hand_idx].categories[0].displayName.ToLower() == "right" ? 1.0f : 0.0f;
+                input_features[idx++] = result.handedness[hand_idx].categories[0].displayName.ToLower() == "right" ? 1.0f : 0.0f;
 
-                var idx = 1;
-                foreach (var lm in result.handLandmarks[hand_idx].landmarks)
+                // Preprocessing
+                var preprocessed = Gestures.LandmarksPreprocessing(result.handLandmarks[hand_idx].landmarks);
+                foreach (var item in preprocessed)
                 {
-                    input_features[idx++] = lm.x;
-                    input_features[idx++] = lm.y;
+                    input_features[idx++] = item;
                 }
-                //Debug.Log($"[{string.Join(", ", input_features)}]")
+                //Debug.Log($"[{string.Join(", ", input_features)}]");
 
                 // Inference Model
                 Tensor input_tensor = new Tensor(B, H, W, C, input_features);
@@ -202,6 +204,7 @@ namespace App
                 Tensor output = modelWorker.PeekOutput();
 
                 gestures[hand_idx] = Gestures.ToCategory(output.ArgMax()[0]); 
+
                 input_tensor.Dispose();
             }
 
