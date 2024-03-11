@@ -20,7 +20,7 @@ using Unity.Barracuda;
 using PimDeWitte.UnityMainThreadDispatcher;
 using TMPro;
 
-namespace App
+namespace HandTask
 {
     public class HandTaskRunner : VisionTaskApiRunner<HandLandmarker>
     {

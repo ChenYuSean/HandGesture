@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using Mediapipe.Tasks.Components.Containers;
 
-namespace App
+namespace HandTask
 {
 
     public static class Gestures
