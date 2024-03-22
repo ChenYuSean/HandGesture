@@ -308,7 +308,7 @@ namespace Mediapipe
 
       foreach (var imagePtr in imageArray.AsReadOnlySpan())
       {
-        value.Add(new Image(imagePtr, false));
+        value.Add(new Image(imagePtr, true));
       }
     }
 
@@ -354,6 +354,43 @@ namespace Mediapipe
 
     [Obsolete("Use Get instead")]
     public static int GetInt(this Packet<int> packet) => Get(packet);
+
+    /// <summary>
+    ///   Get the content of the <see cref="Packet"/> as a <see cref="Matrix"/> .
+    /// </summary>
+    /// <remarks>
+    ///   On some platforms (e.g. Windows), it will abort the process when <see cref="MediaPipeException"/> should be thrown.
+    /// </remarks>
+    /// <param name="value">
+    ///   The <see cref="Matrix"/> to be filled with the content of the <see cref="Packet"/>.
+    /// </param>
+    /// <exception cref="MediaPipeException">
+    ///   If the <see cref="Packet"/> doesn't contain a mediapipe::Matrix data.
+    /// </exception>
+    public static void Get(this Packet<Matrix> packet, ref Matrix value)
+    {
+      UnsafeNativeMethods.mp_Packet__GetMpMatrix(packet.mpPtr, out var nativeMatrix).Assert();
+      GC.KeepAlive(packet);
+
+      Matrix.Copy(nativeMatrix, ref value);
+    }
+
+    /// <summary>
+    ///   Get the content of the <see cref="Packet"/> as a <see cref="Matrix"/> .
+    /// </summary>
+    /// <remarks>
+    ///   On some platforms (e.g. Windows), it will abort the process when <see cref="MediaPipeException"/> should be thrown.
+    /// </remarks>
+    /// <exception cref="MediaPipeException">
+    ///   If the <see cref="Packet"/> doesn't contain a mediapipe::Matrix data.
+    /// </exception>
+    public static Matrix Get(this Packet<Matrix> packet)
+    {
+      UnsafeNativeMethods.mp_Packet__GetMpMatrix(packet.mpPtr, out var nativeMatrix).Assert();
+      GC.KeepAlive(packet);
+
+      return new Matrix(nativeMatrix);
+    }
 
     /// <summary>
     ///   Get the content of the <see cref="Packet"/> as a proto message.
@@ -468,7 +505,5 @@ namespace Mediapipe
 
     [Obsolete("Use Get instead")]
     public static string GetString(this Packet<string> packet) => Get(packet);
-
-    public static T Get<T>(this Packet<T> packet) => throw new NotImplementedException();
   }
 }

@@ -11,6 +11,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
+#if UNITY_ANDROID
+using UnityEngine.Rendering;
+#endif
+
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Mediapipe.Unity.Sample
@@ -49,8 +53,7 @@ namespace Mediapipe.Unity.Sample
         if (GpuManager.IsInitialized)
         {
 #if UNITY_ANDROID
-          //if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && _openGlEsConfig != null)
-          if(_openGlEsConfig != null)
+          if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && _openGlEsConfig != null)
           {
             return ConfigType.OpenGLES;
           }
@@ -201,11 +204,6 @@ namespace Mediapipe.Unity.Sample
       textureFrame.Release();
 
       AddPacketToInputStream(streamName, Packet.CreateImageFrameAt(imageFrame, latestTimestamp));
-    }
-
-    protected bool TryGetValue<T>(Packet<T> packet, out T value)
-    {
-      return TryGetValue(packet, out value, (packet) => packet.Get());
     }
 
     protected bool TryGetValue<T>(Packet<T> packet, out T value, Func<Packet<T>, T> getter)

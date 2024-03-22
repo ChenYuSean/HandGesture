@@ -39,8 +39,11 @@ namespace HandTask
 
         const int B = 1;
         const int H = 1;
-        const int W = 1;
-        const int C = 43;
+        const int W = 21;
+        const int C = 2;
+
+        private int imageHeight;
+        private int imageWidth;
 
         public override void Stop()
         {
@@ -78,6 +81,9 @@ namespace HandTask
 
             yield return imageSource.Play();
 
+            imageWidth = imageSource.textureWidth;
+            imageHeight = imageSource.textureHeight;
+
             if (!imageSource.isPrepared)
             {
                 Debug.LogError("Failed to start ImageSource, exiting...");
@@ -97,7 +103,7 @@ namespace HandTask
             var flipHorizontally = transformationOptions.flipHorizontally;
             var flipVertically = transformationOptions.flipVertically;
             var imageProcessingOptions = new Tasks.Vision.Core.ImageProcessingOptions(rotationDegrees: (int)transformationOptions.rotationAngle);
-
+            Debug.Log($"rotationDegree: {(int)transformationOptions.rotationAngle}");
             AsyncGPUReadbackRequest req = default;
             var waitUntilReqDone = new WaitUntil(() => req.done);
             var result = HandLandmarkerResult.Alloc(options.numHands);
@@ -186,11 +192,11 @@ namespace HandTask
                 }
 
                 var idx = 0;
-                float[] input_features = new float[C];
-                input_features[idx++] = result.handedness[hand_idx].categories[0].displayName.ToLower() == "right" ? 1.0f : 0.0f;
+                float[] input_features = new float[W*C];
+                //input_features[idx++] = result.handedness[hand_idx].categories[0].displayName.ToLower() == "right" ? 1.0f : 0.0f;
 
                 // Preprocessing
-                var preprocessed = Gestures.LandmarksPreprocessing(result.handLandmarks[hand_idx].landmarks);
+                var preprocessed = Gestures.LandmarksPreprocessing(result.handLandmarks[hand_idx].landmarks, imageWidth, imageHeight);
                 foreach (var item in preprocessed)
                 {
                     input_features[idx++] = item;
@@ -209,7 +215,8 @@ namespace HandTask
             }
 
             //Debug.Log($"Gesture:{string.Join(", " , gestures)}");
-            display_text.text = $"Gesture:{string.Join(", ", gestures)}";
+            //Debug.Log($"Wrist:{{{result.handLandmarks[0].landmarks[0].x},{result.handLandmarks[0].landmarks[0].y}}}, \n Tips:{{{result.handLandmarks[0].landmarks[8].x},{result.handLandmarks[0].landmarks[8].y}}}");
+            display_text.text = $"Gesture:{string.Join(", ", gestures)} \n Wrist:{{{result.handLandmarks[0].landmarks[0].x},{result.handLandmarks[0].landmarks[0].y}}}, \n Tips:{{{result.handLandmarks[0].landmarks[8].x},{result.handLandmarks[0].landmarks[8].y}}}";
         }
 
         public void OnDestroy()
